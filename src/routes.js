@@ -9,7 +9,7 @@ export const routes = [
   // 8 – production verification after the promote
   {
     id: '8-qa-release', when: (f) => f.released,
-    run: (f) => ({ agent: 'qaRelease', prompt: `/qa-release ${f.key}` }),
+    run: (f) => ({ agent: 'qa', prompt: `/qa-release ${f.key}` }),
   },
 
   // 7 – release gate, then promote
