@@ -1,5 +1,5 @@
-// Minimal Jira Cloud REST client (basic auth with an API token). Read-only for now;
-// writes (labels, comments) are added with the runner in build step 2.
+// Minimal Jira Cloud REST client (basic auth with an API token).
+// The relay itself only writes markers: labels and `[factory] …` comments. Agents do the real work.
 
 export function createJira({ site, email, token }) {
   if (!email || !token) {
@@ -48,6 +48,14 @@ export function createJira({ site, email, token }) {
         if (!page.comments.length || startAt >= page.total) break;
       }
       return out.map((c) => ({ body: c.body || '', created: c.created }));
+    },
+
+    async comment(key, body) {
+      await call('POST', `/rest/api/2/issue/${key}/comment`, { body });
+    },
+
+    async addLabel(key, label) {
+      await call('PUT', `/rest/api/2/issue/${key}`, { update: { labels: [{ add: label }] } });
     },
   };
 }

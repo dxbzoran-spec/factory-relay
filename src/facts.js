@@ -8,7 +8,9 @@ const isAgentComment = (body) => AGENT_COMMENT.some((re) => re.test(body));
 
 const APPROVAL_PROMPT = /^\s*\[factory\] approval prompt/i;
 const RELEASE = /^\s*release\b/i;
-const VERDICT = /^\s*QA (PASSED|FAILED) on (\S+)/;
+// Only the QA agent's verdict gates the flow. QA CI also posts "QA PASSED on <url> (CI …)" for every
+// preview, but it does not verify the contract locators, so it is informational here.
+const VERDICT = /^\s*QA (PASSED|FAILED) on (\S+)(?![\s\S]*\(CI\b)/;
 const TEST_URL = /Test URL:\s*(\S+)/;
 
 function latest(comments, re) {
@@ -33,8 +35,10 @@ export function deriveFacts(issue, comments, { productionUrl } = {}) {
   const verdict = latest(comments, VERDICT);
   const verdictIsCurrent = Boolean(testUrl && verdict && verdict.index > testUrl.index);
 
+  // Only Bugs that block the story (QA links them "Bug blocks story"); "Relates" links are ignored.
   const openBugs = (f.issuelinks || [])
-    .map((l) => l.inwardIssue || l.outwardIssue)
+    .filter((l) => l.type?.name === 'Blocks')
+    .map((l) => l.inwardIssue)
     .filter((i) => i && i.fields.issuetype?.name === 'Bug' && i.fields.status?.statusCategory?.key !== 'done')
     .map((i) => i.key);
 

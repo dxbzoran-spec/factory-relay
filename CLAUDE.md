@@ -9,8 +9,23 @@ Plan: `C:\Users\lenov\.claude\plans\unite-testforge-mvp-qa-and-cheerful-flute.md
 - `src/routes.js` – the flow (Jira state → next step). The only file that knows the order of steps.
 - `src/facts.js` – pure: issue + comments → facts. Agent comments are recognised by text markers
   (`[factory] …`, `QA PASSED/FAILED on`, `Test URL:`), because every comment is posted with the same token.
-- `src/jira.js` – Jira REST (API token from `.env`).
-- `relay.js` – CLI and poll loop.
+- `src/jira.js` – Jira REST (API token from `.env`). The relay writes only markers: labels, `[factory] …` comments.
+- `src/runner.js` – runs `claude.exe -p` headless in the agent's cwd; log per step in `logs/<KEY>/`, lock in `locks/`.
+- `relay.js` – CLI and poll loop. One agent step at a time. After a step, Jira must show progress, else `factory-stuck`.
+
+## Agents
+| Agent | cwd | Entry skills |
+|---|---|---|
+| qa | `D:\Projects\testforge-mvp` | `/qa-verify-story` (step 4); later `/qa-orchestrator --headless/--resume`, `/qa-release` |
+| dev | `D:\Projects\dev-nest` (+ `--add-dir D:\Projects\sapic-site`) | `/dev-implement --headless [--rework]` (steps 3, 5) |
+
+Permissions are passed per agent from `relay.config.json` (`--allowedTools` / `--disallowedTools`): headless runs did
+not apply the agent repos' project settings. Headless Claude here has a PowerShell tool and no Bash tool, so every
+shell rule exists in both forms. QA may not push or use `gh`; DEV may not merge, start workflows, force-push or push `main`.
+
+## Enabled steps
+`enabledSteps` in the config. Today: 3, 4, 5 (DEV build → QA verify → rework). For step 3 the story needs the labels
+`factory` + `contract-ready` (set by hand after `/qa-orchestrator`, until steps 1–2 are built).
 
 ## Rules
 - All flow state lives in Jira (status, labels, comments). The relay keeps no state besides per-story locks.

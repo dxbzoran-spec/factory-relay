@@ -14,7 +14,8 @@ function step({ status = 'To Do', category = 'new', labels = ['factory'], commen
   const c = comments.map((body, i) => ({ body, created: `2026-11-03T10:0${i}:00Z` }));
   return nextStep(deriveFacts(issue, c, cfg), cfg);
 }
-const bug = (done = false) => ({
+const bug = (done = false, type = 'Blocks') => ({
+  type: { name: type },
   inwardIssue: { key: 'SCRUM-100', fields: { issuetype: { name: 'Bug' }, status: { statusCategory: { key: done ? 'done' : 'new' } } } },
 });
 
@@ -69,13 +70,15 @@ test('5 open bug while in progress → rework, then stuck at the limit', () => {
   assert.equal(s.markStuck, true);
 });
 
-test('5 a closed bug does not trigger rework', () => {
+test('5 a closed bug or a "Relates" bug does not trigger rework', () => {
   assert.equal(step({ status: 'In Progress', category: 'indeterminate', labels: ['factory'], links: [bug(true)] }).id, 'idle');
+  assert.equal(step({ status: 'In Progress', category: 'indeterminate', labels: ['factory'], links: [bug(false, 'Relates')] }).id, 'idle');
 });
 
-test('6 QA PASSED on the preview → merge', () => {
-  const s = step({ status: 'In Review', category: 'indeterminate', labels: ['factory'], comments: [`Test URL: ${PREVIEW}`, `QA PASSED on ${PREVIEW} (CI …)`] });
-  assert.equal(s.id, '6-merge');
+test('6 QA agent PASSED on the preview → merge; a CI verdict alone does not', () => {
+  const base = { status: 'In Review', category: 'indeterminate', labels: ['factory'] };
+  assert.equal(step({ ...base, comments: [`Test URL: ${PREVIEW}`, `QA PASSED on ${PREVIEW} (CI, all green ×2)`] }).id, '4-qa-verify');
+  assert.equal(step({ ...base, comments: [`Test URL: ${PREVIEW}`, `QA PASSED on ${PREVIEW} (agent, 12/12 ×2)`] }).id, '6-merge');
 });
 
 test('7 staged: hitl 1 waits for "release", hitl 0 promotes', () => {

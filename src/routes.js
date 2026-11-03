@@ -38,19 +38,19 @@ export const routes = [
   },
   {
     id: '5-dev-rework', when: (f) => f.openBugs.length > 0 && f.status === 'In Progress',
-    run: (f) => ({ agent: 'dev', prompt: `/dev-implement ${f.key} --rework (open bugs: ${f.openBugs.join(', ')})` }),
+    run: (f) => ({ agent: 'dev', prompt: `/dev-implement ${f.key} --headless --rework (open bugs: ${f.openBugs.join(', ')})` }),
   },
 
-  // 4 – DEV handed off: QA verifies on the test URL (also re-checks a CI FAILED so a Bug gets filed)
+  // 4 – DEV handed off: QA agent verifies on the test URL (a CI verdict alone does not count, see facts.js)
   {
     id: '4-qa-verify', when: (f) => f.status === 'In Review' && f.testUrl && f.verdict !== 'PASSED',
-    run: (f) => ({ agent: 'qa', prompt: `/generate-sources ${f.key} then /generate-test ${f.key} on ${f.testUrl}` }),
+    run: (f) => ({ agent: 'qa', prompt: `/qa-verify-story ${f.key} ${f.testUrl}` }),
   },
 
   // 3 – contract agreed: DEV builds
   {
     id: '3-dev-implement', when: (f) => f.contractReady && f.status === 'To Do',
-    run: (f) => ({ agent: 'dev', prompt: `/dev-implement ${f.key}` }),
+    run: (f) => ({ agent: 'dev', prompt: `/dev-implement ${f.key} --headless` }),
   },
 
   // 2 – approval reply in Jira: QA continues
