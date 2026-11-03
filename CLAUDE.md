@@ -16,8 +16,9 @@ Plan: `C:\Users\lenov\.claude\plans\unite-testforge-mvp-qa-and-cheerful-flute.md
 ## Agents
 | Agent | cwd | Entry skills |
 |---|---|---|
-| qa | `D:\Projects\testforge-mvp` | `/qa-verify-story` (step 4); later `/qa-orchestrator --headless/--resume`, `/qa-release` |
+| qa | `D:\Projects\testforge-mvp` | `/qa-orchestrator --headless --hitl=0\|1` (1), `--resume` (2), `/qa-verify-story` (4) |
 | dev | `D:\Projects\dev-nest` (+ `--add-dir D:\Projects\sapic-site`) | `/dev-implement --headless [--rework]` (steps 3, 5) |
+| qaRelease | same as qa, may push testforge (no force, no gh) | `/qa-release` (step 8) |
 
 Sessions are lean: `mcpConfig` (+ `--strict-mcp-config`) loads only the agent's Jira/Playwright servers, and
 `settingSources: project,local` skips user-level plugins, hooks and settings. That halves the start context
@@ -26,8 +27,6 @@ Sessions are lean: `mcpConfig` (+ `--strict-mcp-config`) loads only the agent's 
 Permissions are passed per agent from `relay.config.json` (`--allowedTools` / `--disallowedTools`): headless runs did
 not apply the agent repos' project settings. Headless Claude here has a PowerShell tool and no Bash tool, so every
 shell rule exists in both forms. QA may not push or use `gh`; DEV may not merge, start workflows, force-push or push `main`.
-
-| qaRelease | same as qa, may push testforge (no force, no gh) | `/qa-release` (step 8) |
 
 ## Release steps (no agent, `src/ops.js`, `gh` with the active account)
 - **6 merge**: PR `feature/<KEY>` checks green → `gh pr merge --merge --delete-branch` → wait for CI/CD on `main`
@@ -38,8 +37,15 @@ shell rule exists in both forms. QA may not push or use `gh`; DEV may not merge,
 - **8**: the QA agent checks production, drops `@pending`, pushes testforge, posts QA PASSED, sets Done.
 
 ## Enabled steps
-`enabledSteps` in the config. Today: 3–8. For step 3 the story needs the labels `factory` + `contract-ready`
-(set by hand after `/qa-orchestrator`, until steps 1–2 are built).
+`enabledSteps` in the config. Today: all, 1–8. A new To Do story only needs the label `factory` (+ `hitl-0` for no
+human gates). Run history: SCRUM-13 (steps 3–8, hitl 1, 2026-11-03), SCRUM-14 (steps 1–8, hitl-0, 22 min, no human).
+
+## Open items (details: testforge `docs/PROGRESS.md`, "Pick up next")
+- Proposed, not applied: hitl-0 falls back to the approval prompt when a story changes an earlier story's tests;
+  QA pushes testforge after every step (today only step 8, so QA CI tests a stale copy and posts a false FAILED).
+- Not exercised live: the hitl 1 approval reply (step 2), the fail → rework loop (step 5), stuck recovery.
+- Model per agent (cost), running as a background service, move to GitHub.
+- The relay runs in a terminal and stops with it; start it again with `node relay.js`.
 
 ## Rules
 - All flow state lives in Jira (status, labels, comments). The relay keeps no state besides per-story locks.
