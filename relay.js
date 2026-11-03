@@ -27,7 +27,8 @@ if (all && !dryRun) {
   process.exit(2);
 }
 
-const jql = `project = ${cfg.jira.project}${all ? '' : ` AND labels = ${cfg.jira.optInLabel}`} ORDER BY key ASC`;
+// Bugs are never driven directly: the relay reaches them through the story's links (step 5).
+const jql = `project = ${cfg.jira.project} AND issuetype != Bug${all ? '' : ` AND labels = ${cfg.jira.optInLabel}`} ORDER BY key ASC`;
 
 async function poll() {
   const issues = await jira.search(jql);
