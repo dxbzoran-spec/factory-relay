@@ -81,6 +81,13 @@ test('6 QA agent PASSED on the preview → merge; a CI verdict alone does not', 
   assert.equal(step({ ...base, comments: [`Test URL: ${PREVIEW}`, `QA PASSED on ${PREVIEW} (agent, 12/12 ×2)`] }).id, '6-merge');
 });
 
+test('6 → 7: once staged, the old preview PASSED does not merge again', () => {
+  const comments = [`Test URL: ${PREVIEW}`, `QA PASSED on ${PREVIEW} (agent, 4/4 ×2)`, '[factory] merged PR #8 (abc1234); CI/CD on main green'];
+  assert.equal(step({ status: 'In Review', labels: ['factory', 'staged'], comments }).id, '7-wait-release');
+  assert.equal(step({ status: 'In Review', labels: ['factory', 'staged'], comments: [...comments, 'release'] }).id, '7-promote');
+  assert.equal(step({ status: 'In Review', labels: ['factory', 'staged', 'released'], comments }).id, '8-qa-release');
+});
+
 test('7 staged: hitl 1 waits for "release", hitl 0 promotes', () => {
   assert.equal(step({ status: 'In Review', labels: ['factory', 'staged'] }).id, '7-wait-release');
   assert.equal(step({ status: 'In Review', labels: ['factory', 'staged'], comments: ['release'] }).id, '7-promote');

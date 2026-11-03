@@ -7,12 +7,14 @@
   "pollSeconds": 60,
   "stepTimeoutMinutes": 60,
   "reworkLimit": 3,
-  "productionUrl": "https://sapic-site.pages.dev",
   "enabledSteps": [
     "3-dev-implement",
     "4-qa-verify",
     "5-dev-rework",
-    "5-stuck-rework"
+    "5-stuck-rework",
+    "6-merge",
+    "7-promote",
+    "8-qa-release"
   ],
   "agents": {
     "qa": {
@@ -57,6 +59,32 @@
         "PowerShell(git push origin main:*)",
         "Bash(git push origin main:*)"
       ]
+    },
+    "qaRelease": {
+      "cwd": "D:\\Projects\\testforge-mvp",
+      "mcpConfig": "D:/Projects/testforge-mvp/.mcp.json",
+      "settingSources": "project,local",
+      "allow": [
+        "PowerShell",
+        "Bash",
+        "mcp__atlassian",
+        "mcp__playwright"
+      ],
+      "deny": [
+        "PowerShell(git push --force:*)",
+        "Bash(git push --force:*)",
+        "PowerShell(git push -f:*)",
+        "Bash(git push -f:*)",
+        "PowerShell(gh:*)",
+        "Bash(gh:*)"
+      ]
     }
+  },
+  "product": {
+    "repo": "digitaliummcc-dotcom/sapic-site",
+    "ciWorkflow": "ci.yml",
+    "promoteWorkflow": "promote.yml",
+    "stagingUrl": "https://staging.sapic-site.pages.dev",
+    "productionUrl": "https://sapic-site.pages.dev"
   }
 }

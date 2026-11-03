@@ -9,7 +9,8 @@ import { readFileSync, existsSync } from 'node:fs';
 import { createJira } from './src/jira.js';
 import { deriveFacts } from './src/facts.js';
 import { nextStep } from './src/routes.js';
-import { runAgent, staleLocks, clearLock } from './src/runner.js';
+import { runAgent, staleLocks, clearLock, writeLock } from './src/runner.js';
+import * as ops from './src/ops.js';
 
 const args = new Set(process.argv.slice(2));
 const dryRun = args.has('--dry-run');
@@ -34,7 +35,7 @@ const lastLine = new Map(); // key → last printed state, so a waiting story is
 let running = null; // { key, stepId, promise }
 
 async function factsFor(issue) {
-  return deriveFacts(issue, await jira.comments(issue.key), cfg);
+  return deriveFacts(issue, await jira.comments(issue.key), { productionUrl: cfg.product.productionUrl });
 }
 
 async function markStuck(key, reason, logPath) {
@@ -55,9 +56,41 @@ async function recoverInterruptedSteps() {
   }
 }
 
+// Steps 6–7: plain scripts. The relay itself writes the marker (label + comment) that moves the story on.
+const OPS_MARKER = { merge: 'staged', promote: 'released' };
+
+async function startOps(facts, step) {
+  const { key } = facts;
+  const { action } = step.job;
+  say(`${key} [${step.id}] OPS started: ${action}`);
+  const t0 = Date.now();
+  writeLock(key, { stepId: step.id, pid: process.pid, started: new Date().toISOString(), logPath: 'relay console' });
+  let result;
+  try {
+    result = await ops[action]({ key, product: cfg.product, timeoutMinutes: cfg.stepTimeoutMinutes, log: (l) => console.log(l) });
+  } catch (err) {
+    result = { ok: false, summary: `${action} failed: ${(err.stderr || err.message || '').toString().trim().slice(0, 300)}` };
+  } finally {
+    clearLock(key);
+  }
+  const took = `${Math.round((Date.now() - t0) / 60_000)} min`;
+  if (!result.ok) return markStuck(key, `step ${step.id}: ${result.summary}`);
+
+  let note = '';
+  if (action === 'merge') {
+    note = facts.hitl === 1
+      ? '\nRelease gate: check staging, then comment "release" on this story to promote to production.'
+      : '\nLabel hitl-0: promoting to production without a human gate.';
+  }
+  await jira.comment(key, `[factory] ${result.summary}${note}`);
+  await jira.addLabel(key, OPS_MARKER[action]);
+  say(`${key} [${step.id}] done in ${took}: ${result.summary}`);
+}
+
 async function start(facts, step) {
   const { key } = facts;
   const { job } = step;
+  if (job.agent === 'ops') return startOps(facts, step);
   if (step.id === '5-dev-rework') {
     await jira.comment(key, `[factory] rework round ${facts.reworkRounds + 1} of ${cfg.reworkLimit}: ${facts.openBugs.join(', ')}`);
   }

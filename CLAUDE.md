@@ -27,9 +27,19 @@ Permissions are passed per agent from `relay.config.json` (`--allowedTools` / `-
 not apply the agent repos' project settings. Headless Claude here has a PowerShell tool and no Bash tool, so every
 shell rule exists in both forms. QA may not push or use `gh`; DEV may not merge, start workflows, force-push or push `main`.
 
+| qaRelease | same as qa, may push testforge (no force, no gh) | `/qa-release` (step 8) |
+
+## Release steps (no agent, `src/ops.js`, `gh` with the active account)
+- **6 merge**: PR `feature/<KEY>` checks green → `gh pr merge --merge --delete-branch` → wait for CI/CD on `main`
+  (tests + staging deploy + smoke) → comment + label `staged`.
+- **7 promote**: hitl 1 waits for a human comment starting with `release`; hitl 0 goes on. Then `promote.yml` on `main`
+  (it refuses unless CI/CD for that commit is green), wait for it → comment + label `released`.
+  Promote ships the whole of `main`: with one story in flight at a time that is just this story.
+- **8**: the QA agent checks production, drops `@pending`, pushes testforge, posts QA PASSED, sets Done.
+
 ## Enabled steps
-`enabledSteps` in the config. Today: 3, 4, 5 (DEV build → QA verify → rework). For step 3 the story needs the labels
-`factory` + `contract-ready` (set by hand after `/qa-orchestrator`, until steps 1–2 are built).
+`enabledSteps` in the config. Today: 3–8. For step 3 the story needs the labels `factory` + `contract-ready`
+(set by hand after `/qa-orchestrator`, until steps 1–2 are built).
 
 ## Rules
 - All flow state lives in Jira (status, labels, comments). The relay keeps no state besides per-story locks.

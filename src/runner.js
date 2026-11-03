@@ -15,6 +15,10 @@ export function staleLocks() {
   return readdirSync(LOCKS).map((f) => JSON.parse(readFileSync(join(LOCKS, f), 'utf8')));
 }
 export const clearLock = (key) => rmSync(join(LOCKS, `${key}.json`), { force: true });
+export function writeLock(key, info) {
+  mkdirSync(LOCKS, { recursive: true });
+  writeFileSync(join(LOCKS, `${key}.json`), JSON.stringify({ key, ...info }));
+}
 
 function killTree(pid) {
   try {
