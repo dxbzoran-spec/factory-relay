@@ -32,6 +32,10 @@ export function runAgent({ key, stepId, agent, prompt, timeoutMinutes, log = con
 
   const args = ['-p', prompt, '--output-format', 'stream-json', '--verbose', '--permission-mode', 'acceptEdits'];
   for (const dir of agent.addDirs || []) args.push('--add-dir', dir);
+  // Lean session: only the agent's own MCP servers, and no user-level plugins/hooks/settings.
+  // Halves the context every turn rereads (measured 41k → 22k tokens at start).
+  if (agent.mcpConfig) args.push('--strict-mcp-config', '--mcp-config', agent.mcpConfig);
+  if (agent.settingSources) args.push('--setting-sources', agent.settingSources);
   // Permissions come from relay.config.json, not from the agent repos' settings (headless runs did not pick those up).
   if (agent.allow?.length) args.push('--allowedTools', ...agent.allow);
   if (agent.deny?.length) args.push('--disallowedTools', ...agent.deny);

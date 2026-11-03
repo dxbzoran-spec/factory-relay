@@ -19,6 +19,10 @@ Plan: `C:\Users\lenov\.claude\plans\unite-testforge-mvp-qa-and-cheerful-flute.md
 | qa | `D:\Projects\testforge-mvp` | `/qa-verify-story` (step 4); later `/qa-orchestrator --headless/--resume`, `/qa-release` |
 | dev | `D:\Projects\dev-nest` (+ `--add-dir D:\Projects\sapic-site`) | `/dev-implement --headless [--rework]` (steps 3, 5) |
 
+Sessions are lean: `mcpConfig` (+ `--strict-mcp-config`) loads only the agent's Jira/Playwright servers, and
+`settingSources: project,local` skips user-level plugins, hooks and settings. That halves the start context
+(41k → 22k tokens, 156 → 89 tools), which every turn rereads. The project skills stay available.
+
 Permissions are passed per agent from `relay.config.json` (`--allowedTools` / `--disallowedTools`): headless runs did
 not apply the agent repos' project settings. Headless Claude here has a PowerShell tool and no Bash tool, so every
 shell rule exists in both forms. QA may not push or use `gh`; DEV may not merge, start workflows, force-push or push `main`.

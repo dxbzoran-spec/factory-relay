@@ -8,26 +8,54 @@
   "stepTimeoutMinutes": 60,
   "reworkLimit": 3,
   "productionUrl": "https://sapic-site.pages.dev",
-  "enabledSteps": ["3-dev-implement", "4-qa-verify", "5-dev-rework", "5-stuck-rework"],
+  "enabledSteps": [
+    "3-dev-implement",
+    "4-qa-verify",
+    "5-dev-rework",
+    "5-stuck-rework"
+  ],
   "agents": {
     "qa": {
       "cwd": "D:\\Projects\\testforge-mvp",
-      "allow": ["PowerShell", "Bash", "mcp__atlassian", "mcp__playwright"],
+      "mcpConfig": "D:/Projects/testforge-mvp/.mcp.json",
+      "settingSources": "project,local",
+      "allow": [
+        "PowerShell",
+        "Bash",
+        "mcp__atlassian",
+        "mcp__playwright"
+      ],
       "deny": [
-        "PowerShell(git push:*)", "Bash(git push:*)",
-        "PowerShell(gh:*)", "Bash(gh:*)"
+        "PowerShell(git push:*)",
+        "Bash(git push:*)",
+        "PowerShell(gh:*)",
+        "Bash(gh:*)"
       ]
     },
     "dev": {
       "cwd": "D:\\Projects\\dev-nest",
-      "addDirs": ["D:\\Projects\\sapic-site"],
-      "allow": ["PowerShell", "Bash", "mcp__atlassian", "mcp__playwright"],
+      "addDirs": [
+        "D:\\Projects\\sapic-site"
+      ],
+      "mcpConfig": "D:/Projects/dev-nest/.mcp.json",
+      "settingSources": "project,local",
+      "allow": [
+        "PowerShell",
+        "Bash",
+        "mcp__atlassian",
+        "mcp__playwright"
+      ],
       "deny": [
-        "PowerShell(gh pr merge:*)", "Bash(gh pr merge:*)",
-        "PowerShell(gh workflow:*)", "Bash(gh workflow:*)",
-        "PowerShell(git push --force:*)", "Bash(git push --force:*)",
-        "PowerShell(git push -f:*)", "Bash(git push -f:*)",
-        "PowerShell(git push origin main:*)", "Bash(git push origin main:*)"
+        "PowerShell(gh pr merge:*)",
+        "Bash(gh pr merge:*)",
+        "PowerShell(gh workflow:*)",
+        "Bash(gh workflow:*)",
+        "PowerShell(git push --force:*)",
+        "Bash(git push --force:*)",
+        "PowerShell(git push -f:*)",
+        "Bash(git push -f:*)",
+        "PowerShell(git push origin main:*)",
+        "Bash(git push origin main:*)"
       ]
     }
   }
