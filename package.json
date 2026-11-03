@@ -1,0 +1,14 @@
+{
+  "name": "factory-relay",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local watcher: reads Jira and starts the QA or DEV agent for the next step of each factory story",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "dry": "node relay.js --dry-run",
+    "once": "node relay.js --once",
+    "start": "node relay.js",
+    "test": "node --test test/*.test.js"
+  }
+}

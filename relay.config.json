@@ -1,0 +1,15 @@
+{
+  "jira": {
+    "site": "https://dxbzoran-1792745597422.atlassian.net",
+    "project": "SCRUM",
+    "optInLabel": "factory"
+  },
+  "pollSeconds": 60,
+  "stepTimeoutMinutes": 60,
+  "reworkLimit": 3,
+  "productionUrl": "https://sapic-site.pages.dev",
+  "agents": {
+    "qa": { "cwd": "D:\\Projects\\testforge-mvp" },
+    "dev": { "cwd": "D:\\Projects\\sapic-site" }
+  }
+}
