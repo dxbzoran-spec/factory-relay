@@ -8,6 +8,8 @@
   "stepTimeoutMinutes": 60,
   "reworkLimit": 3,
   "enabledSteps": [
+    "1-qa-orchestrate",
+    "2-qa-resume",
     "3-dev-implement",
     "4-qa-verify",
     "5-dev-rework",

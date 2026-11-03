@@ -25,8 +25,17 @@ test('1 new story → QA orchestrator headless', () => {
   assert.match(s.job.prompt, /qa-orchestrator SCRUM-99 --headless/);
 });
 
-test('1 hitl-0 is passed on to the orchestrator', () => {
-  assert.match(step({ labels: ['factory', 'hitl-0'] }).job.prompt, /hitl-0/);
+test('1 the hitl level is passed on to the orchestrator', () => {
+  assert.match(step({ labels: ['factory', 'hitl-0'] }).job.prompt, /--headless --hitl=0$/);
+  assert.match(step({}).job.prompt, /--headless --hitl=1$/);
+});
+
+test('2 a revised prompt makes the relay wait for a new reply', () => {
+  const s = step({
+    labels: ['factory', 'awaiting-approval'],
+    comments: ['[factory] approval prompt for SCRUM-99', 'G3: something unclear', '[factory] approval prompt for SCRUM-99 (revised)'],
+  });
+  assert.equal(s.id, '2-wait-approval');
 });
 
 test('2 waits for a human reply, agent comments do not count', () => {

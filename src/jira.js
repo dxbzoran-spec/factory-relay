@@ -47,7 +47,9 @@ export function createJira({ site, email, token }) {
         startAt += page.comments.length;
         if (!page.comments.length || startAt >= page.total) break;
       }
-      return out.map((c) => ({ body: c.body || '', created: c.created }));
+      // Comments written as rich text (agents via the Atlassian MCP) come back as wiki markup, where "[" and "]"
+      // may be escaped; un-escape them so "[factory] …" markers match either way.
+      return out.map((c) => ({ body: (c.body || '').replace(/\\([[\]])/g, '$1'), created: c.created }));
     },
 
     async comment(key, body) {

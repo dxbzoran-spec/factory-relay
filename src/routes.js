@@ -2,8 +2,6 @@
 // First matching route wins. A route returns either a job to run (agent 'qa' | 'dev', or 'ops')
 // or a wait/none reason. Moving to GitHub later replaces the trigger and the runner, not this file.
 
-const hitlNote = (f) => (f.hitl === 0 ? ' Label hitl-0 is set: no human gates.' : '');
-
 export const routes = [
   { id: 'stuck', when: (f) => f.stuck, wait: () => 'label factory-stuck: fix by hand, then remove the label' },
   { id: 'done', when: (f) => f.done, none: () => 'Done' },
@@ -66,7 +64,7 @@ export const routes = [
   // 1 – new story: QA analyses it
   {
     id: '1-qa-orchestrate', when: (f) => f.status === 'To Do' && !f.contractReady,
-    run: (f) => ({ agent: 'qa', prompt: `/qa-orchestrator ${f.key} --headless${hitlNote(f)}` }),
+    run: (f) => ({ agent: 'qa', prompt: `/qa-orchestrator ${f.key} --headless --hitl=${f.hitl}` }),
   },
 
   { id: 'idle', when: () => true, wait: (f) => `nothing to do in status "${f.status}" (an agent may be working on it)` },
